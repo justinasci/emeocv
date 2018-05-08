@@ -34,6 +34,8 @@ ImageProcessor::ImageProcessor(const Config & config) :
  */
 void ImageProcessor::setInput(cv::Mat & img) {
     _img = img;
+    //rotate(270);
+
 }
 
 /**
@@ -91,6 +93,10 @@ void ImageProcessor::process() {
     if (_debugWindow) {
         showImage();
     }
+}
+
+void ImageProcessor::setFileName(std::string name) {
+	_fileName = name;
 }
 
 /**
@@ -264,11 +270,41 @@ void ImageProcessor::findCounterDigits() {
     }
 
     // cut out found rectangles from edged image
+
+    cv::Mat mask = cv::Mat::zeros(_imgGray.size(), CV_8UC1);
+    
+
+	int w, h = 0;
+
     for (int i = 0; i < alignedBoundingBoxes.size(); ++i) {
         cv::Rect roi = alignedBoundingBoxes[i];
-        _digits.push_back(img_ret(roi));
+        _digits.push_back(_imgGray(roi));
+	w += roi.width;
+        h += (h < roi.height)? roi.height : h;
+        cv::rectangle(mask, roi, cv::Scalar(255,0,0), -1);
         if (_debugDigits) {
             cv::rectangle(_img, roi, cv::Scalar(0, 255, 0), 2);
         }
+
+	    cv::Mat t = _imgGray(roi);
+	    cv::bitwise_not(t, t);
+	    cv::imwrite("./output/"+ std::to_string(i) + ".jpg", t);
+            cv::bitwise_not(t, t);
     }
+
+
+  // w = 0 
+
+  // for(int i = 0 ; i < _digits.size(); i++) {
+	
+
+   // }
+
+  //  cv::bitwise_and(_imgGray, mask, mask);
+  //  cv::bitwise_not(mask, mask);
+    //cv::threshold(mask, mask, 0, 255, CV_THRESH_BINARY | CV_THRESH_OTSU);
+    //cv::imwrite("./output/a.jpg", mask);
+
+
+
 }
