@@ -91,12 +91,14 @@ bool KNearestOcr::loadTrainingData() {
 char KNearestOcr::recognize(const cv::Mat& img) {
     log4cpp::Category& rlog = log4cpp::Category::getRoot();
     char cres = '?';
+std::cout << "->";
     try {
         if (!_pModel) {
             throw std::runtime_error("Model is not initialized");
         }
+
         cv::Mat results, neighborResponses, dists;
-        float result = _pModel->findNearest(prepareSample(img), 2, results, neighborResponses, dists);
+        float result = _pModel->findNearest(prepareSample(img), 10, results, neighborResponses, dists);
         if (0 == int(neighborResponses.at<float>(0, 0) - neighborResponses.at<float>(0, 1))
                 && dists.at<float>(0, 0) < _config.getOcrMaxDist()) {
             // valid character if both neighbors have the same value and distance is below ocrMaxDist
@@ -139,6 +141,12 @@ cv::Mat KNearestOcr::prepareSample(const cv::Mat& img) {
  * Initialize the model.
  */
 void KNearestOcr::initModel() {
-    Ptr<KNearest> _pModel = KNearest::create();
+    if (_pModel) {
+        delete _pModel;
+    }
+    _pModel = KNearest::create();
+    _pModel->train(_samples, cv::ml::ROW_SAMPLE ,_responses);
+
+
 }
 
